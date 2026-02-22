@@ -52,15 +52,45 @@ def setup_data_via_api():
         
     return local_data_dir
 
+class AeroplaneOnlyDataset(torch.utils.data.Dataset):
+    def __init__(self, original_dataset):
+        self.dataset = original_dataset
+        self.valid_indices = []
+        
+        print("Scanning 11,000+ images for aerial targets... (This takes about 10 seconds)")
+        for i in range(len(original_dataset)):
+            img, ann = original_dataset[i]
+            objects = ann["annotation"].get("object", [])
+            
+            if isinstance(objects, dict):
+                objects = [objects]
+            
+            # Check if an airplane exists in this specific image
+            has_plane = any(obj["name"] == "aeroplane" for obj in objects)
+            if has_plane:
+                self.valid_indices.append(i)
+                
+        print(f"Filter Complete! Found {len(self.valid_indices)} high-value target images.")
+
+    def __len__(self):
+        return len(self.valid_indices)
+
+    def __getitem__(self, idx):
+        return self.dataset[self.valid_indices[idx]]
+
 # 4. Initialize DataLoader
 def get_dataloader(batch_size=8):
     data_root = setup_data_via_api()
     
     print("Initializing PyTorch VOCDetection...")
-    dataset = VOCDetection(root=data_root, year='2012', image_set='train', 
-                           download=False, transform=transform)
+    raw_dataset = VOCDetection(root=data_root, year='2012', image_set='train', 
+                               download=False, transform=transform)
     
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, 
+    # Wrap the raw dataset in our custom filter!
+    target_dataset = AeroplaneOnlyDataset(raw_dataset)
+    
+    # Now the dataloader will ONLY pull images that actually contain airplanes
+    dataloader = DataLoader(target_dataset, batch_size=batch_size, shuffle=True, 
                             collate_fn=yolo_collate_fn)
     return dataloader
 

@@ -1,14 +1,10 @@
 import torch
 
 # VOC class list (20 classes)
-VOC_CLASSES = [
-    "aeroplane","bicycle","bird","boat","bottle","bus","car","cat",
-    "chair","cow","diningtable","dog","horse","motorbike","person",
-    "pottedplant","sheep","sofa","train","tvmonitor"
-]
+VOC_CLASSES = ["aeroplane"]
 
 class YOLOEncoder:
-    def __init__(self, S=7, B=2, C=20):
+    def __init__(self, S=7, B=1, C=1):
         self.S = S
         self.B = B
         self.C = C
@@ -40,11 +36,13 @@ class YOLOEncoder:
             xmax = float(bbox["xmax"])
             ymax = float(bbox["ymax"])
 
-            # Normalize (because we resized to 64x64)
-            xmin /= img_size
-            ymin /= img_size
-            xmax /= img_size
-            ymax /= img_size
+            img_w = float(annotation["annotation"]["size"]["width"])
+            img_h = float(annotation["annotation"]["size"]["height"])
+
+            xmin /= img_w
+            xmax /= img_w
+            ymin /= img_h
+            ymax /= img_h
 
             # Convert to YOLO format
             x_center = (xmin + xmax) / 2
