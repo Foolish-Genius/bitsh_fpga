@@ -66,17 +66,15 @@ class YOLOEncoder:
 
             # If no object already assigned to this cell
             if target[i, j, self.C] == 0:
-
-                # One-hot class
+                # One-hot class (Indices 0 to 19)
                 target[i, j, class_idx] = 1
 
-                # Box 1
-                target[i, j, self.C:self.C+5] = torch.tensor([
-                    x_cell,
-                    y_cell,
-                    width,
-                    height,
-                    1.0  # confidence
+                # Confidence Score (Index 20)
+                target[i, j, self.C] = 1.0 
+                
+                # Bounding Box: x_cell, y_cell, width, height (Indices 21 to 24)
+                target[i, j, self.C+1 : self.C+5] = torch.tensor([
+                    x_cell, y_cell, width, height
                 ])
 
         return target
