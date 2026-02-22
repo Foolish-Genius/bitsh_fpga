@@ -3,6 +3,7 @@ import torchvision.transforms as transforms
 from torchvision.datasets import VOCDetection
 from torch.utils.data import DataLoader
 
+# https://gemini.google.com/share/74e3bc3ac7ff
 # 1. Transforms: Hardware constraints dictate our architecture. 
 # To fit within the limited BRAM of your target hardware, we aggressively 
 # downscale the images to 64x64 to match the MicroSpikingYOLO backbone you just ran.
@@ -28,9 +29,9 @@ def get_dataloader(batch_size=8):
     print("Initializing PASCAL VOC Dataset...")
     print("Note: The first run will download the dataset (~2GB). Grab a coffee!")
     
-    # Load the training data
+    # Load the training data (Changed download to False)
     dataset = VOCDetection(root='./data', year='2012', image_set='train', 
-                           download=True, transform=transform)
+                           download=False, transform=transform)
     
     # Wrap it in a DataLoader to handle batching and shuffling
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, 
@@ -55,3 +56,4 @@ if __name__ == "__main__":
         name = obj['name']
         bbox = obj['bndbox']
         print(f" - Found Object: '{name}' | Coordinates: {bbox}")
+    
